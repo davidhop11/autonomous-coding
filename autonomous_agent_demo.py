@@ -19,10 +19,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from agent import run_autonomous_agent
-
 # Load environment variables from .env file (if it exists)
+# IMPORTANT: Must be called BEFORE importing other modules that read env vars at load time
 load_dotenv()
+
+from agent import run_autonomous_agent
 
 
 # Configuration
