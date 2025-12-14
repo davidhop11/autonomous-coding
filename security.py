@@ -28,14 +28,28 @@ ALLOWED_COMMANDS = {
     "pwd",
     # Node.js development
     "npm",
+    "npx",
+    "pnpm",  # Project uses pnpm
     "node",
     # Version control
     "git",
+    # Docker (for PostgreSQL)
+    "docker",
     # Process management
     "ps",
     "lsof",
     "sleep",
+    "kill",  # Kill by PID
     "pkill",  # For killing dev servers; validated separately
+    # Network/API testing
+    "curl",
+    # File operations
+    "mv",
+    "rm",  # Use with caution
+    "touch",
+    # Shell scripts
+    "sh",
+    "bash",
     # Script execution
     "init.sh",  # Init scripts; validated separately
 }
