@@ -109,6 +109,72 @@ Use browser automation tools:
 - Skip visual verification
 - Mark tests passing without thorough verification
 
+### STEP 6.5: MANDATORY VERIFICATION CHECKLIST (BEFORE MARKING ANY TEST PASSING)
+
+**You MUST complete ALL of these checks before marking any feature as "passes": true**
+
+#### Security Verification (for protected features)
+- [ ] Feature respects user role permissions
+- [ ] Unauthenticated access is blocked (redirects to login)
+- [ ] API endpoint checks authorization (returns 401/403 appropriately)
+- [ ] Cannot access other users' data by manipulating URLs
+
+#### Real Data Verification (CRITICAL - NO MOCK DATA)
+- [ ] Created unique test data via UI (e.g., "TEST_12345_VERIFY_ME")
+- [ ] Verified the EXACT data I created appears in UI
+- [ ] Refreshed page - data persists (proves database storage)
+- [ ] Deleted the test data - verified it's gone everywhere
+- [ ] NO unexplained data appeared (would indicate mock data)
+- [ ] Dashboard/counts reflect real numbers after my changes
+
+#### Navigation Verification
+- [ ] All buttons on this page link to existing routes
+- [ ] No 404 errors when clicking any interactive element
+- [ ] Back button returns to correct previous page
+- [ ] Related links (edit, view, delete) have correct IDs in URLs
+
+#### Integration Verification
+- [ ] Console shows ZERO JavaScript errors
+- [ ] Network tab shows successful API calls (no 500s)
+- [ ] Data returned from API matches what UI displays
+- [ ] Loading states appeared during API calls
+- [ ] Error states handle failures gracefully
+
+### STEP 6.6: MOCK DATA DETECTION SWEEP
+
+**Run this sweep AFTER EVERY FEATURE before marking it as passing:**
+
+#### 1. Code Pattern Search
+Search the codebase for forbidden patterns:
+```bash
+# Search for mock data patterns
+grep -r "mockData\|fakeData\|sampleData\|dummyData\|testData" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx"
+grep -r "// TODO\|// FIXME\|// STUB\|// MOCK" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx"
+grep -r "hardcoded\|placeholder" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx"
+```
+
+**If ANY matches found related to your feature - FIX THEM before proceeding.**
+
+#### 2. Runtime Verification
+For ANY data displayed in UI:
+1. Create NEW data with UNIQUE content (e.g., "TEST_12345_DELETE_ME")
+2. Verify that EXACT content appears in the UI
+3. Delete the record
+4. Verify it's GONE from the UI
+5. **If you see data that wasn't created during testing - IT'S MOCK DATA. Fix it.**
+
+#### 3. Database Verification
+Check that:
+- Database tables contain only data you created during tests
+- Counts/statistics match actual database record counts
+- No seed data is masquerading as user data
+
+#### 4. API Response Verification
+For API endpoints used by this feature:
+- Call the endpoint directly
+- Verify response contains actual database data
+- Empty database = empty response (not pre-populated mock data)
+
 ### STEP 7: UPDATE feature_list.json (CAREFULLY!)
 
 **YOU CAN ONLY MODIFY ONE FIELD: "passes"**
@@ -204,7 +270,7 @@ Focus on functional correctness. UI polish can be addressed later.
 
 ## IMPORTANT REMINDERS
 
-**Your Goal:** Production-quality application with all 200+ tests passing
+**Your Goal:** Production-quality application with ALL tests passing (150/250/400+ depending on complexity)
 
 **This Session's Goal:** Complete at least one feature perfectly
 
@@ -216,9 +282,67 @@ Focus on functional correctness. UI polish can be addressed later.
 - Polished UI matching the design specified in app_spec.txt
 - All features work end-to-end through the UI
 - Fast, responsive, professional
+- **NO MOCK DATA - all data from real database**
+- **Security enforced - unauthorized access blocked**
+- **All navigation works - no 404s or broken links**
 
 **You have unlimited time.** Take as long as needed to get it right. The most important thing is that you
 leave the code base in a clean state before terminating the session (Step 10).
+
+---
+
+## VERIFICATION WORKFLOW SUMMARY
+
+```
+For EVERY feature:
+
+┌─────────────────────────────────────────────────────────────┐
+│                    PRE-IMPLEMENTATION                        │
+├─────────────────────────────────────────────────────────────┤
+│ 1. Read the test steps from feature_list.json               │
+│ 2. Identify what data needs to be created                   │
+│ 3. Identify what permissions are needed                     │
+│ 4. Identify what UI elements are involved                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     IMPLEMENTATION                           │
+├─────────────────────────────────────────────────────────────┤
+│ 1. Write backend code (if needed)                           │
+│ 2. Write frontend code                                      │
+│ 3. Connect frontend to REAL backend (NO MOCKS!)             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              VERIFICATION CHECKLIST (Step 6.5)              │
+├─────────────────────────────────────────────────────────────┤
+│ □ Security: permissions checked, unauthorized blocked       │
+│ □ Real Data: created→verified→refreshed→persists→deleted   │
+│ □ Navigation: all buttons/links go to correct routes        │
+│ □ Integration: zero console errors, API calls succeed       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              MOCK DATA SWEEP (Step 6.6)                     │
+├─────────────────────────────────────────────────────────────┤
+│ □ Code search: no mockData/fakeData/TODO patterns           │
+│ □ Runtime: only data I created appears in UI                │
+│ □ Database: counts match, no phantom data                   │
+│ □ API: empty DB = empty response                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+                    ALL CHECKS PASS?
+                     /            \
+                   YES             NO
+                    │               │
+                    ▼               ▼
+            Mark "passes": true   Fix issues,
+            in feature_list.json  repeat verification
+```
 
 ---
 

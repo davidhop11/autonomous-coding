@@ -78,7 +78,30 @@ Options:
 **If Quick Mode**: Skip to Phase 3, then go to Phase 4 (Features). You will derive technical details yourself.
 **If Detailed Mode**: Go through all phases, asking technical questions.
 
-## Phase 3: Scale & Technology Basics
+## Phase 3: Scale, Complexity & Technology Basics
+
+### 3a. Determine Project Complexity Tier
+
+**Use AskUserQuestion tool to determine complexity.** This affects the number and depth of tests generated:
+
+```
+Question: "How complex is your application?"
+Header: "Complexity"
+Options:
+  - Label: "Simple"
+    Description: "Single entity, basic CRUD, no auth (todo list, notes app, calculator)"
+  - Label: "Medium"
+    Description: "Multiple entities, user auth, some relationships (blog, task manager)"
+  - Label: "Complex"
+    Description: "Multiple roles, complex workflows, integrations (banking, e-commerce, CRM)"
+```
+
+**Complexity determines test counts:**
+- **Simple**: 150+ tests
+- **Medium**: 250+ tests
+- **Complex**: 400+ tests
+
+### 3b. Feature Scale
 
 **Use AskUserQuestion tool for scale.** Example:
 
@@ -95,6 +118,8 @@ Options:
   - Label: "300+ features"
     Description: "Enterprise-scale application"
 ```
+
+### 3c. Technology Preferences
 
 **For Quick Mode users**, also ask about tech preferences (can combine in same AskUserQuestion):
 
@@ -173,10 +198,52 @@ Questions (can ask up to 4 at once):
 - What else is unique to your app?
 - Any features we haven't covered?
 
+**4i. Security & Access Control (CRITICAL for Medium/Complex apps)**
+
+**Use AskUserQuestion for roles:**
+```
+Question: "Who are the different types of users?"
+Header: "User Roles"
+Options:
+  - Label: "Just regular users"
+    Description: "Everyone has the same permissions"
+  - Label: "Users + Admins"
+    Description: "Regular users and administrators with extra powers"
+  - Label: "Multiple roles"
+    Description: "Several distinct user types (e.g., viewer, editor, manager, admin)"
+```
+
+**If multiple roles, explore in conversation:**
+- What can each role see?
+- What can each role do?
+- Are there pages only certain roles can access?
+- What happens if someone tries to access something they shouldn't?
+
+**Also ask about authentication:**
+- How do users log in? (email/password, social login, SSO)
+- Password requirements? (for security testing)
+- Session timeout? Auto-logout after inactivity?
+- Any sensitive operations requiring extra confirmation?
+
+**4j. Data Flow & Integration**
+- What data do users create vs what's system-generated?
+- Are there workflows that span multiple steps or pages?
+- What happens to related data when something is deleted?
+- Are there any external systems or APIs to integrate with?
+- Any import/export functionality?
+
+**4k. Error & Edge Cases**
+- What should happen if the network fails mid-action?
+- What about duplicate entries (e.g., same email twice)?
+- Very long text inputs?
+- Empty states (what shows when there's no data)?
+
 **Keep asking follow-up questions until you have a complete picture.** For each feature area, understand:
 - What the user sees
 - What actions they can take
 - What happens as a result
+- Who is allowed to do it (permissions)
+- What errors could occur
 
 ## Phase 5: Technical Details (DERIVED OR DISCUSSED)
 
@@ -287,6 +354,34 @@ Create a new file using this XML structure:
     </environment_setup>
   </prerequisites>
 
+  <security_and_access_control>
+    <complexity_tier>[Simple | Medium | Complex]</complexity_tier>
+    <test_count_target>[150 | 250 | 400]+</test_count_target>
+    <user_roles>
+      <role name="[role_name]">
+        <permissions>
+          - [Can do X]
+          - [Can see Y]
+          - [Cannot access Z]
+        </permissions>
+        <protected_routes>
+          - /admin/* (admin only)
+          - /settings (authenticated users)
+        </protected_routes>
+      </role>
+      [Repeat for each role]
+    </user_roles>
+    <authentication>
+      <method>[email/password | social | SSO]</method>
+      <session_timeout>[duration or "none"]</session_timeout>
+      <password_requirements>[if applicable]</password_requirements>
+    </authentication>
+    <sensitive_operations>
+      - [Delete account requires password confirmation]
+      - [Financial actions require 2FA]
+    </sensitive_operations>
+  </security_and_access_control>
+
   <core_features>
     <[category_name]>
       - [Feature 1]
@@ -361,15 +456,20 @@ Create a new file using this XML structure:
 ## 2. Update `prompts/coding_prompt.md`
 
 Read the existing file and update the feature count reference:
-- Find "200+" or "200" references and replace with the user's feature count
+- Find "200+" or "200" references and replace with the complexity-based count (Simple: 150, Medium: 250, Complex: 400)
 - Keep all other content unchanged
 
 ## 3. Update `prompts/initializer_prompt.md`
 
 Read the existing file and update the feature count references:
-- Line containing "create a file called `feature_list.json` with 200" - update "200" to user's count
-- Line containing "Minimum 200 features" - update "200" to user's count
+- Line containing "create a file called `feature_list.json` with 200" - update "200" to complexity-based count
+- Line containing "Minimum 200 features" - update to complexity-based count
 - Keep all other content unchanged
+
+**Complexity-based test counts:**
+- Simple apps: 150+ tests
+- Medium apps: 250+ tests
+- Complex apps: 400+ tests
 
 ---
 
